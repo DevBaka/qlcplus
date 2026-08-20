@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE FixtureDefinition>
+<FixtureDefinition xmlns="http://www.qlcplus.org/FixtureDefinition">
+ <Creator>
+  <Name>daslight_to_qlcplus.py</Name>
+  <Version>1.0</Version>
+  <Author>Converted from Daslight 5</Author>
+ </Creator>
+ <Manufacturer>Pure Light</Manufacturer>
+ <Model>FX Mini Derby 2</Model>
+ <Type>Color Changer</Type>
+ <Channel Name="Dimmer" Preset="IntensityDimmer"/>
+ <Channel Name="Red+Orange Dimmer">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="255">Dimmer</Capability>
+ </Channel>
+ <Channel Name="Green+Purple Dimmer">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="255">Dimmer</Capability>
+ </Channel>
+ <Channel Name="Blue+White Dimmer">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="255">Dimmer</Capability>
+ </Channel>
+ <Channel Name="Green+Yellow Dimmer">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="255">Dimmer</Capability>
+ </Channel>
+ <Channel Name="Strobe">
+  <Group Byte="0">Shutter</Group>
+  <Capability Min="0" Max="0">NoFunction</Capability>
+  <Capability Min="1" Max="255">Strobe</Capability>
+ </Channel>
+ <Channel Name="Light Switched On">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="255">Light Switched On Slow to Fast</Capability>
+ </Channel>
+ <Channel Name="Music Control">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="255">Music Control</Capability>
+ </Channel>
+ <Mode Name="8 Channel">
+  <Channel Number="0">Dimmer</Channel>
+  <Channel Number="1">Red+Orange Dimmer</Channel>
+  <Channel Number="2">Green+Purple Dimmer</Channel>
+  <Channel Number="3">Blue+White Dimmer</Channel>
+  <Channel Number="4">Green+Yellow Dimmer</Channel>
+  <Channel Number="5">Strobe</Channel>
+  <Channel Number="6">Light Switched On</Channel>
+  <Channel Number="7">Music Control</Channel>
+ </Mode>
+ <Physical>
+  <Bulb Type="LED" Lumens="0" ColourTemperature="7000"/>
+  <Dimensions Weight="0" Width="350" Height="370" Depth="180"/>
+  <Lens Name="Other" DegreesMin="6" DegreesMax="60"/>
+  <Focus Type="Fixed" PanMax="360" TiltMax="220"/>
+  <Technical PowerConsumption="30" DmxConnector="3-pin"/>
+ </Physical>
+</FixtureDefinition>

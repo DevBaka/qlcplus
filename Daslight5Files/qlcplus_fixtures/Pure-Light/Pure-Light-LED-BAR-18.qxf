@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE FixtureDefinition>
+<FixtureDefinition xmlns="http://www.qlcplus.org/FixtureDefinition">
+ <Creator>
+  <Name>daslight_to_qlcplus.py</Name>
+  <Version>1.0</Version>
+  <Author>Converted from Daslight 5</Author>
+ </Creator>
+ <Manufacturer>Pure Light</Manufacturer>
+ <Model>LED BAR 18</Model>
+ <Type>LED Bar (Beams)</Type>
+ <Channel Name="Red 1" Preset="IntensityRed"/>
+ <Channel Name="Green 1" Preset="IntensityGreen"/>
+ <Channel Name="Blue 1" Preset="IntensityBlue"/>
+ <Channel Name="Red 2" Preset="IntensityRed"/>
+ <Channel Name="Green 2" Preset="IntensityGreen"/>
+ <Channel Name="Blue 2" Preset="IntensityBlue"/>
+ <Channel Name="Red 3" Preset="IntensityRed"/>
+ <Channel Name="Green 3" Preset="IntensityGreen"/>
+ <Channel Name="Blue 3" Preset="IntensityBlue"/>
+ <Channel Name="Empty">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="255">NoFunction</Capability>
+ </Channel>
+ <Channel Name="Strobe">
+  <Group Byte="0">Shutter</Group>
+  <Capability Min="0" Max="0">Strobe Off</Capability>
+  <Capability Min="1" Max="255">Strobe</Capability>
+ </Channel>
+ <Channel Name="Function">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="9">Manual Dimmer</Capability>
+  <Capability Min="10" Max="249">Internal Effect</Capability>
+  <Capability Min="250" Max="255">Music Mode</Capability>
+ </Channel>
+ <Channel Name="Speed">
+  <Group Byte="0">Speed</Group>
+  <Capability Min="0" Max="255">Speed</Capability>
+ </Channel>
+ <Mode Name="13 Channel">
+  <Channel Number="0">Red 1</Channel>
+  <Channel Number="1">Green 1</Channel>
+  <Channel Number="2">Blue 1</Channel>
+  <Channel Number="3">Red 2</Channel>
+  <Channel Number="4">Green 2</Channel>
+  <Channel Number="5">Blue 2</Channel>
+  <Channel Number="6">Red 3</Channel>
+  <Channel Number="7">Green 3</Channel>
+  <Channel Number="8">Blue 3</Channel>
+  <Channel Number="9">Empty</Channel>
+  <Channel Number="10">Strobe</Channel>
+  <Channel Number="11">Function</Channel>
+  <Channel Number="12">Speed</Channel>
+ </Mode>
+ <Physical>
+  <Bulb Type="LED" Lumens="0" ColourTemperature="7000"/>
+  <Dimensions Weight="0" Width="700" Height="30" Depth="60"/>
+  <Lens Name="Other" DegreesMin="35" DegreesMax="60"/>
+  <Focus Type="Fixed" PanMax="360" TiltMax="220"/>
+  <Technical PowerConsumption="60" DmxConnector="3-pin"/>
+ </Physical>
+</FixtureDefinition>
