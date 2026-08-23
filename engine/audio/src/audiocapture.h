@@ -157,6 +157,21 @@ signals:
      *  spacing of the beat signals. */
     void beatDetected(int bpm);
 
+    /** Emitted for every discrete musical event detected by the beat
+     *  tracker's percussion detector (Kick/Snare/HiHat/Beat/Bar - see
+     *  AudioEventType in audioevents.h, passed as a plain int here to
+     *  keep this a simple, queued-connection-friendly POD signal).
+     *  @a timestampSec is on the audio timeline, not wall clock. */
+    void audioEventDetected(int type, double timestampSec, double confidence, double strength);
+
+    /** Emitted once per processed audio block with the beat tracker's
+     *  current continuous analysis state (see AudioAnalysisState in
+     *  audioevents.h). */
+    void analysisStateChanged(double bpm, double beatPhase, int beatIndex, int barIndex,
+                              double energy, double bassEnergy, double midEnergy, double highEnergy,
+                              double kickConfidence, double beatConfidence, bool inBreak,
+                              double peakBandValue, double peakThreshold, double kickBandOnset);
+
 protected:
     QMutex m_mutex;
 

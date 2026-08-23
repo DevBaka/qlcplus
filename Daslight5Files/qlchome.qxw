@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Workspace>
+<Workspace xmlns="http://www.qlcplus.org/Workspace" CurrentWindow="IOMGR">
+ <Creator>
+  <Name>Q Light Controller Plus</Name>
+  <Version>5.2.2</Version>
+  <Author>DJBaka</Author>
+ </Creator>
+ <Engine>
+  <InputOutputMap>
+   <BeatGenerator BeatType="Internal" BPM="120"/>
+   <NetworkServer Type="Native" AutoStart="False" Name="QLC+_C0A8B22D" Password=""/>
+   <Universe Name="Universe 1" ID="0">
+    <Output Plugin="uDMX" Name="uDMX" UID="" Line="0">
+     <PluginParameters UniverseChannels="508"/>
+    </Output>
+   </Universe>
+   <Universe Name="Universe 2" ID="1"/>
+   <Universe Name="Universe 3" ID="2"/>
+   <Universe Name="Universe 4" ID="3"/>
+   <Universe Name="Universe 5" ID="4"/>
+  </InputOutputMap>
+  <Fixture>
+   <Manufacturer>Varytec</Manufacturer>
+   <Model>Giga Bar LED 240 RGB </Model>
+   <Mode>24 Channel</Mode>
+   <ID>0</ID>
+   <Name>Giga Bar LED 240 RGB  [1]</Name>
+   <Universe>0</Universe>
+   <Address>0</Address>
+   <Channels>24</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>1</ID>
+   <Name>12 RGBW LED Par Light [2]</Name>
+   <Universe>0</Universe>
+   <Address>60</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>2</ID>
+   <Name>12 RGBW LED Par Light [3]</Name>
+   <Universe>0</Universe>
+   <Address>68</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>3</ID>
+   <Name>12 RGBW LED Par Light [4]</Name>
+   <Universe>0</Universe>
+   <Address>76</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>4</ID>
+   <Name>12 RGBW LED Par Light [5]</Name>
+   <Universe>0</Universe>
+   <Address>84</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>5</ID>
+   <Name>12 RGBW LED Par Light [6]</Name>
+   <Universe>0</Universe>
+   <Address>92</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>6</ID>
+   <Name>12 RGBW LED Par Light [7]</Name>
+   <Universe>0</Universe>
+   <Address>100</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>7</ID>
+   <Name>12 RGBW LED Par Light [8]</Name>
+   <Universe>0</Universe>
+   <Address>108</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>8</ID>
+   <Name>12 RGBW LED Par Light [9]</Name>
+   <Universe>0</Universe>
+   <Address>116</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>9</ID>
+   <Name>12 RGBW LED Par Light [10]</Name>
+   <Universe>0</Universe>
+   <Address>124</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Lixada</Manufacturer>
+   <Model>12 RGBW LED Par Light</Model>
+   <Mode>Default</Mode>
+   <ID>10</ID>
+   <Name>12 RGBW LED Par Light [11]</Name>
+   <Universe>0</Universe>
+   <Address>132</Address>
+   <Channels>8</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Generic</Manufacturer>
+   <Model>Generic</Model>
+   <Mode>12 Channel</Mode>
+   <ID>11</ID>
+   <Name>MUVY SpotOne 10_12CH [12]</Name>
+   <Universe>0</Universe>
+   <Address>211</Address>
+   <Channels>12</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Generic</Manufacturer>
+   <Model>Generic</Model>
+   <Mode>12 Channel</Mode>
+   <ID>12</ID>
+   <Name>MUVY SpotOne 10_12CH [13]</Name>
+   <Universe>0</Universe>
+   <Address>223</Address>
+   <Channels>12</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Generic</Manufacturer>
+   <Model>Generic</Model>
+   <Mode>13 Channel</Mode>
+   <ID>13</ID>
+   <Name>LED BAR 18 [14]</Name>
+   <Universe>0</Universe>
+   <Address>24</Address>
+   <Channels>13</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Stairville</Manufacturer>
+   <Model>All FX Bar</Model>
+   <Mode>10 Channel</Mode>
+   <ID>14</ID>
+   <Name>All FX Bar [15]</Name>
+   <Universe>0</Universe>
+   <Address>50</Address>
+   <Channels>10</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Generic</Manufacturer>
+   <Model>Generic</Model>
+   <Mode>13 Channel</Mode>
+   <ID>15</ID>
+   <Name>LED BAR 18 [16]</Name>
+   <Universe>0</Universe>
+   <Address>37</Address>
+   <Channels>13</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>UKing</Manufacturer>
+   <Model>ZQ02040</Model>
+   <Mode>13 Channel</Mode>
+   <ID>36</ID>
+   <Name>Uking ZQ02040 [37]</Name>
+   <Universe>0</Universe>
+   <Address>140</Address>
+   <Channels>13</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>UKing</Manufacturer>
+   <Model>ZQ02040</Model>
+   <Mode>13 Channel</Mode>
+   <ID>37</ID>
+   <Name>Uking ZQ02040 [38]</Name>
+   <Universe>0</Universe>
+   <Address>153</Address>
+   <Channels>13</Channels>
+  </Fixture>
+  <Monitor DisplayMode="0" ShowLabels="0">
+   <Font>Arial,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   <ChannelStyle>0</ChannelStyle>
+   <ValueStyle>0</ValueStyle>
+   <Grid Width="5" Height="3" Depth="5" Units="0" POV="1"/>
+   <StageItem>0</StageItem>
+   <FxItem ID="0" XPos="1993.19" YPos="1000" ZPos="606.3"/>
+   <FxItem ID="1" XPos="1759.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="2" XPos="1929.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="3" XPos="2099.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="4" XPos="2269.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="5" XPos="2439.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="6" XPos="2609.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="7" XPos="2779.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="8" XPos="2949.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="9" XPos="3119.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="10" XPos="3289.65" YPos="1000" ZPos="2311.64"/>
+   <FxItem ID="11" XPos="1732.5" YPos="1000" ZPos="1502.42"/>
+   <FxItem ID="12" XPos="3136.12" YPos="1000" ZPos="1464.4"/>
+   <FxItem ID="13" XPos="863.533" YPos="1000" ZPos="2175.87"/>
+   <FxItem ID="14" XPos="2166.98" YPos="1000" ZPos="1855.44"/>
+   <FxItem ID="15" XPos="3617.58" YPos="1000" ZPos="1996.64"/>
+   <FxItem ID="36" XPos="1249.14" YPos="1000" ZPos="1491.06"/>
+   <FxItem ID="37" XPos="3608.62" YPos="1000" ZPos="1436.75"/>
+  </Monitor>
+ </Engine>
+ <VirtualConsole>
+  <Frame Caption="Page 1" ID="0">
+   <Appearance>
+    <Font>Roboto Condensed,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   </Appearance>
+   <WindowState Visible="True" X="0" Y="0" Width="1920" Height="1080"/>
+   <AllowResize>False</AllowResize>
+   <ShowHeader>False</ShowHeader>
+   <ShowEnableButton>True</ShowEnableButton>
+   <Collapsed>False</Collapsed>
+   <Disabled>False</Disabled>
+  </Frame>
+  <Frame Caption="Page 2" ID="1">
+   <Appearance>
+    <Font>Roboto Condensed,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   </Appearance>
+   <WindowState Visible="True" X="0" Y="0" Width="1920" Height="1080"/>
+   <AllowResize>False</AllowResize>
+   <ShowHeader>False</ShowHeader>
+   <ShowEnableButton>True</ShowEnableButton>
+   <Collapsed>False</Collapsed>
+   <Disabled>False</Disabled>
+  </Frame>
+  <Frame Caption="Page 3" ID="2">
+   <Appearance>
+    <Font>Roboto Condensed,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   </Appearance>
+   <WindowState Visible="True" X="0" Y="0" Width="1920" Height="1080"/>
+   <AllowResize>False</AllowResize>
+   <ShowHeader>False</ShowHeader>
+   <ShowEnableButton>True</ShowEnableButton>
+   <Collapsed>False</Collapsed>
+   <Disabled>False</Disabled>
+  </Frame>
+  <Frame Caption="Page 4" ID="3">
+   <Appearance>
+    <Font>Roboto Condensed,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1</Font>
+   </Appearance>
+   <WindowState Visible="True" X="0" Y="0" Width="1920" Height="1080"/>
+   <AllowResize>False</AllowResize>
+   <ShowHeader>False</ShowHeader>
+   <ShowEnableButton>True</ShowEnableButton>
+   <Collapsed>False</Collapsed>
+   <Disabled>False</Disabled>
+  </Frame>
+ </VirtualConsole>
+</Workspace>

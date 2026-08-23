@@ -36,6 +36,7 @@
 #include "vcspeeddial.h"
 #include "virtualconsole.h"
 #include "vcaudiotriggers.h"
+#include "vcmusicreactive.h"
 
 static const quint64 encKey = 0x5131632B5067334B; // this is "Q1c+Pg3K"
 
@@ -334,6 +335,19 @@ VCWidget *VCFrame::addWidget(QQuickItem *parent, QString wType, QPoint pos)
             setupWidget(audioTrigger, currentPage());
             audioTrigger->render(m_vc->view(), parent);
             return audioTrigger;
+        }
+        break;
+        case MusicReactiveWidget:
+        {
+            VCMusicReactive *musicReactive = new VCMusicReactive(m_doc, m_vc, this);
+            QQmlEngine::setObjectOwnership(musicReactive, QQmlEngine::CppOwnership);
+            m_vc->addWidgetToMap(musicReactive);
+            Tardis::instance()->enqueueAction(Tardis::VCWidgetCreate, this->id(), QVariant(),
+                                              Tardis::instance()->actionToByteArray(Tardis::VCWidgetCreate, musicReactive->id()));
+            musicReactive->setGeometry(QRect(pos.x(), pos.y(), m_vc->pixelDensity() * 50, m_vc->pixelDensity() * 50));
+            setupWidget(musicReactive, currentPage());
+            musicReactive->render(m_vc->view(), parent);
+            return musicReactive;
         }
         break;
         case XYPadWidget:
@@ -1199,6 +1213,20 @@ bool VCFrame::loadWidgetXML(QXmlStreamReader &root, bool render)
             m_vc->addWidgetToMap(animation);
             if (render && m_item)
                 animation->render(m_vc->view(), m_item);
+        }
+    }
+    else if (root.name() == KXMLQLCVCMusicReactive)
+    {
+        VCMusicReactive *musicReactive = new VCMusicReactive(m_doc, m_vc, this);
+        if (musicReactive->loadXML(root) == false)
+            delete musicReactive;
+        else
+        {
+            QQmlEngine::setObjectOwnership(musicReactive, QQmlEngine::CppOwnership);
+            setupWidget(musicReactive, musicReactive->page());
+            m_vc->addWidgetToMap(musicReactive);
+            if (render && m_item)
+                musicReactive->render(m_vc->view(), m_item);
         }
     }
     else if (root.name() == KXMLQLCVCAudioTriggers)

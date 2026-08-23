@@ -34,6 +34,7 @@
 #include "qlcmacros.h"
 #include "vccuelist.h"
 #include "vcbutton.h"
+#include "chaser.h"
 #include "vcslider.h"
 #include "app.h"
 #include "doc.h"
@@ -57,6 +58,26 @@
 #define KXMLQLCAudioBarMaxThreshold QStringLiteral("MaxThreshold")
 #define KXMLQLCAudioBarDivisor      QStringLiteral("Divisor")
 
+namespace {
+
+/** Display name for a musical-event bar. Whether a bar IS one of these
+ *  is purely structural (its fixed position in the trailing block, see
+ *  MusicalEventBarCount) - nothing here is saved to XML. */
+QString musicalEventName(AudioEventType type)
+{
+    switch (type)
+    {
+        case AudioEventType::Kick:  return QObject::tr("Kick");
+        case AudioEventType::Snare: return QObject::tr("Snare / Clap");
+        case AudioEventType::HiHat: return QObject::tr("Hi-Hat");
+        case AudioEventType::Beat:  return QObject::tr("Beat");
+        case AudioEventType::Bar:   return QObject::tr("Bar");
+        default: return QString();
+    }
+}
+
+} // namespace
+
 VCAudioTriggers::VCAudioTriggers(Doc *doc, VirtualConsole *vc, QObject *parent)
     : VCWidget(doc, parent)
     , m_vc(vc)
@@ -76,10 +97,25 @@ VCAudioTriggers::VCAudioTriggers(Doc *doc, VirtualConsole *vc, QObject *parent)
     QSharedPointer<AudioCapture> capture(m_doc->audioInputCapture());
     m_inputCapture = capture.data();
 
-    // reserve for volume + spectrum bars
-    m_spectrumBars.resize(m_inputCapture->defaultBarsNumber() + 1);
+    // Fixed trailing musical-event bars (Kick/Snare/HiHat/Beat/Bar),
+    // always in this order - see MusicalEventBarCount in the header.
+    static const AudioEventType kMusicalEventOrder[MusicalEventBarCount] =
+    {
+        AudioEventType::Kick, AudioEventType::Snare, AudioEventType::HiHat,
+        AudioEventType::Beat, AudioEventType::Bar
+    };
+    for (int i = 0; i < MusicalEventBarCount; i++)
+    {
+        AudioBar bar;
+        bar.m_musicalEvent = true;
+        bar.m_musicalEventType = kMusicalEventOrder[i];
+        m_spectrumBars.append(bar);
+    }
+
+    // reserve for volume + spectrum bars (the musical-event bars above
+    // are appended on top by setBarsNumber(), not counted here)
     m_audioLevels.resize(m_spectrumBars.count());
-    setBarsNumber(m_spectrumBars.count());
+    setBarsNumber(m_inputCapture->defaultBarsNumber() + 1);
 }
 
 VCAudioTriggers::~VCAudioTriggers()
@@ -190,7 +226,9 @@ void VCAudioTriggers::setCaptureEnabled(bool enable)
                 this, SLOT(slotSpectrumDataChanged(double*,int,double,quint32)));
         connect(m_inputCapture, SIGNAL(volumeChanged(int)),
                 this, SIGNAL(volumeLevelChanged()));
-        m_inputCapture->registerBandsNumber(m_spectrumBars.count() - 1);
+        connect(m_inputCapture, SIGNAL(audioEventDetected(int,double,double,double)),
+                this, SLOT(slotAudioEventDetected(int,double,double,double)));
+        m_inputCapture->registerBandsNumber(barsNumber() - 1);
 
         // Invalid ID: Stop every other widget
         emit functionStarting(this, Function::invalidId());
@@ -208,11 +246,13 @@ void VCAudioTriggers::setCaptureEnabled(bool enable)
     {
         if (!captureIsNew)
         {
-            m_inputCapture->unregisterBandsNumber(m_spectrumBars.count() - 1);
+            m_inputCapture->unregisterBandsNumber(barsNumber() - 1);
             disconnect(m_inputCapture, SIGNAL(dataProcessed(double*,int,double,quint32)),
                        this, SLOT(slotSpectrumDataChanged(double*,int,double,quint32)));
             disconnect(m_inputCapture, SIGNAL(volumeChanged(int)),
                        this, SIGNAL(volumeLevelChanged()));
+            disconnect(m_inputCapture, SIGNAL(audioEventDetected(int,double,double,double)),
+                       this, SLOT(slotAudioEventDetected(int,double,double,double)));
         }
 
         m_doc->masterTimer()->unregisterDMXSource(this);
@@ -251,29 +291,31 @@ void VCAudioTriggers::setVolumeLevel(uchar level)
 
 int VCAudioTriggers::barsNumber() const
 {
-    // number of bars includes volume bar
-    return m_spectrumBars.count();
+    // number of bars includes the volume bar, excludes the fixed
+    // trailing musical-event bars (Kick/Snare/HiHat/Beat/Bar) - this
+    // keeps the public property's meaning, the saved XML BarsNumber
+    // attribute and the AudioCapture band registration count exactly
+    // as they were before the musical-event bars existed.
+    return m_spectrumBars.count() - MusicalEventBarCount;
 }
 
 void VCAudioTriggers::setBarsNumber(int num)
 {
-    if (num == m_spectrumBars.count())
+    num = qMax(1, num); // at least the volume bar
+    if (num == barsNumber())
         return;
 
-    if (num > m_spectrumBars.count())
+    if (num > barsNumber())
     {
-        int barsToAdd = num - m_spectrumBars.count();
+        int barsToAdd = num - barsNumber();
         for (int i = 0 ; i < barsToAdd; i++)
-        {
-            AudioBar bar;
-            m_spectrumBars.append(bar);
-        }
+            m_spectrumBars.insert(m_spectrumBars.count() - MusicalEventBarCount, AudioBar());
     }
-    else if (num < m_spectrumBars.count())
+    else
     {
-        int barsToRemove = m_spectrumBars.count() - num;
+        int barsToRemove = barsNumber() - num;
         for (int i = 0 ; i < barsToRemove; i++)
-            m_spectrumBars.takeLast();
+            m_spectrumBars.remove(m_spectrumBars.count() - MusicalEventBarCount - 1);
     }
 
     m_audioLevels.clear();
@@ -353,6 +395,10 @@ QVariantList VCAudioTriggers::barsInfo() const
         {
             barMap.insert("bLabel", "Volume Bar");
         }
+        else if (bar.m_musicalEvent)
+        {
+            barMap.insert("bLabel", musicalEventName(bar.m_musicalEventType));
+        }
         else
         {
             const int bandIndex = index - 1;
@@ -398,6 +444,8 @@ QVariantList VCAudioTriggers::barsInfo() const
 
         barMap.insert("minThreshold", qRound(SCALE(float(bar.m_minThreshold), 0.0, 255.0, 0.0, 100.0)));
         barMap.insert("maxThreshold", qRound(SCALE(float(bar.m_maxThreshold), 0.0, 255.0, 0.0, 100.0)));
+        barMap.insert("musicalEvent", bar.m_musicalEvent);
+        barMap.insert("divisor", bar.m_divisor);
 
         bList.append(barMap);
         index++;
@@ -438,6 +486,15 @@ void VCAudioTriggers::setBarThresholds(uchar minThr, uchar maxThr)
     AudioBar &bar = m_spectrumBars[m_selectedBar];
     bar.m_minThreshold = SCALE(float(minThr), 0.0, 100.0, 0.0, 255.0);
     bar.m_maxThreshold = SCALE(float(maxThr), 0.0, 100.0, 0.0, 255.0);
+    emit barsInfoChanged();
+}
+
+void VCAudioTriggers::setBarDivisor(int value)
+{
+    if (m_selectedBar < 0 || m_selectedBar >= m_spectrumBars.count())
+        return;
+
+    m_spectrumBars[m_selectedBar].m_divisor = qMax(1, value);
     emit barsInfoChanged();
 }
 
@@ -561,6 +618,9 @@ void VCAudioTriggers::checkWidgetFunctionality(AudioBar &bar) const
             if (cueList == nullptr)
                 return;
 
+            qDebug() << "[VCAudioTriggers] cue list widget resolved, its assigned chaser is"
+                     << (cueList->chaser() ? cueList->chaser()->name() : QStringLiteral("(none - assign one in the Cue List's own properties!)"));
+
             int divisor = qMax(1, bar.m_divisor);
             if (bar.m_value >= bar.m_maxThreshold && !bar.m_tapped)
             {
@@ -586,10 +646,13 @@ void VCAudioTriggers::slotSpectrumDataChanged(double *spectrumBands,
                                              double maxMagnitude,
                                              quint32 power)
 {
-    // First element of m_spectrumBars is the volume bar.
-    // We registered bandsNumber = m_spectrumBars.count() - 1 with AudioCapture,
-    // so 'size' must match that.
-    if (size != m_spectrumBars.count() - 1)
+    // First element of m_spectrumBars is the volume bar, followed by the
+    // spectrum bars, followed by the fixed trailing musical-event bars
+    // (Kick/Snare/HiHat/Beat/Bar - not part of the FFT band registration
+    // at all, see MusicalEventBarCount). We registered
+    // bandsNumber = barsNumber() - 1 with AudioCapture, so 'size' must
+    // match that, not the full m_spectrumBars count.
+    if (size != barsNumber() - 1)
         return;
 
     m_audioLevels.clear();
@@ -656,6 +719,62 @@ void VCAudioTriggers::slotSpectrumDataChanged(double *spectrumBands,
     }
 
     emit audioLevelsChanged();
+}
+
+void VCAudioTriggers::slotAudioEventDetected(int type, double timestampSec,
+                                             double confidence, double strength)
+{
+    Q_UNUSED(timestampSec)
+    Q_UNUSED(confidence)
+
+    // Emulate a brief threshold crossing for every bar configured for
+    // this event type, so the existing hysteresis + divisor logic below
+    // (identical to the per-frame spectrum loop above) fires exactly
+    // once per detected Kick/Snare/HiHat/Beat/Bar - real onset-detected
+    // events instead of a raw amplitude threshold, with zero changes to
+    // how a bar actually reacts once triggered.
+    const uchar pulseValue = uchar(qBound(0.0, strength, 1.0) * 255.0 + 0.5);
+
+    for (AudioBar &bar : m_spectrumBars)
+    {
+        if (!bar.m_musicalEvent || int(bar.m_musicalEventType) != type)
+            continue;
+
+        qDebug() << "[VCAudioTriggers] musical-event bar matched, type" << bar.m_type
+                 << "widgetId" << bar.m_widgetId << "functionId" << bar.m_functionId;
+
+        bar.m_value = qMax(pulseValue, bar.m_maxThreshold); // guarantee the crossing
+        switch (bar.m_type)
+        {
+            case FunctionBar:
+            {
+                if (bar.m_function == nullptr && bar.m_functionId != Function::invalidId())
+                    bar.m_function = m_doc->function(bar.m_functionId);
+                if (bar.m_function != nullptr)
+                    bar.m_function->start(m_doc->masterTimer(), functionParent());
+            }
+            break;
+            case VCWidgetBar:
+                checkWidgetFunctionality(bar);
+            break;
+            default:
+            break;
+        }
+
+        bar.m_value = 0; // ...then immediately release it
+        switch (bar.m_type)
+        {
+            case FunctionBar:
+                if (bar.m_function != nullptr)
+                    bar.m_function->stop(functionParent());
+            break;
+            case VCWidgetBar:
+                checkWidgetFunctionality(bar);
+            break;
+            default:
+            break;
+        }
+    }
 }
 
 /*********************************************************************

@@ -184,7 +184,8 @@ public:
         LabelWidget,
         AudioTriggersWidget,
         AnimationWidget,
-        ClockWidget
+        ClockWidget,
+        MusicReactiveWidget
     };
     Q_ENUM(WidgetType)
 

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE FixtureDefinition>
+<FixtureDefinition xmlns="http://www.qlcplus.org/FixtureDefinition">
+ <Creator>
+  <Name>daslight_to_qlcplus.py</Name>
+  <Version>1.0</Version>
+  <Author>Converted from Daslight 5</Author>
+ </Creator>
+ <Manufacturer>Varytec</Manufacturer>
+ <Model>Giga Bar 240 LED RGB</Model>
+ <Type>LED Bar (Beams)</Type>
+ <Channel Name="Red1" Preset="IntensityRed"/>
+ <Channel Name="Green1" Preset="IntensityGreen"/>
+ <Channel Name="Blue1" Preset="IntensityBlue"/>
+ <Channel Name="Red2" Preset="IntensityRed"/>
+ <Channel Name="Green2" Preset="IntensityGreen"/>
+ <Channel Name="Blue2" Preset="IntensityBlue"/>
+ <Channel Name="Red3" Preset="IntensityRed"/>
+ <Channel Name="Green3" Preset="IntensityGreen"/>
+ <Channel Name="Blue3" Preset="IntensityBlue"/>
+ <Channel Name="Red4" Preset="IntensityRed"/>
+ <Channel Name="Green4" Preset="IntensityGreen"/>
+ <Channel Name="Blue4" Preset="IntensityBlue"/>
+ <Channel Name="Red5" Preset="IntensityRed"/>
+ <Channel Name="Green5" Preset="IntensityGreen"/>
+ <Channel Name="Blue5" Preset="IntensityBlue"/>
+ <Channel Name="Red6" Preset="IntensityRed"/>
+ <Channel Name="Green6" Preset="IntensityGreen"/>
+ <Channel Name="Blue6" Preset="IntensityBlue"/>
+ <Channel Name="Red7" Preset="IntensityRed"/>
+ <Channel Name="Green7" Preset="IntensityGreen"/>
+ <Channel Name="Blue7" Preset="IntensityBlue"/>
+ <Channel Name="Red8" Preset="IntensityRed"/>
+ <Channel Name="Green8" Preset="IntensityGreen"/>
+ <Channel Name="Blue8" Preset="IntensityBlue"/>
+ <Mode Name="24 Channel">
+  <Channel Number="0">Red1</Channel>
+  <Channel Number="1">Green1</Channel>
+  <Channel Number="2">Blue1</Channel>
+  <Channel Number="3">Red2</Channel>
+  <Channel Number="4">Green2</Channel>
+  <Channel Number="5">Blue2</Channel>
+  <Channel Number="6">Red3</Channel>
+  <Channel Number="7">Green3</Channel>
+  <Channel Number="8">Blue3</Channel>
+  <Channel Number="9">Red4</Channel>
+  <Channel Number="10">Green4</Channel>
+  <Channel Number="11">Blue4</Channel>
+  <Channel Number="12">Red5</Channel>
+  <Channel Number="13">Green5</Channel>
+  <Channel Number="14">Blue5</Channel>
+  <Channel Number="15">Red6</Channel>
+  <Channel Number="16">Green6</Channel>
+  <Channel Number="17">Blue6</Channel>
+  <Channel Number="18">Red7</Channel>
+  <Channel Number="19">Green7</Channel>
+  <Channel Number="20">Blue7</Channel>
+  <Channel Number="21">Red8</Channel>
+  <Channel Number="22">Green8</Channel>
+  <Channel Number="23">Blue8</Channel>
+ </Mode>
+ <Physical>
+  <Bulb Type="LED" Lumens="0" ColourTemperature="7000"/>
+  <Dimensions Weight="0" Width="700" Height="30" Depth="60"/>
+  <Lens Name="Other" DegreesMin="30" DegreesMax="60"/>
+  <Focus Type="Fixed" PanMax="360" TiltMax="220"/>
+  <Technical PowerConsumption="25" DmxConnector="3-pin"/>
+ </Physical>
+</FixtureDefinition>

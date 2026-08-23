@@ -13,11 +13,9 @@ if(NOT ANDROID AND NOT IOS)
     pkg_check_modules(LIBOLA IMPORTED_TARGET libola)
     pkg_check_modules(LIBOLASERVER IMPORTED_TARGET libolaserver)
 
-    # TEMPORARILY disabled: needs proprietary FTDI D2XX SDK (C:/projects/D2XXSDK), not available locally.
-    # add_subdirectory(dmxusb)
+    add_subdirectory(dmxusb)
     add_subdirectory(peperoni)
-    # TEMPORARILY disabled: needs libusb-1.0 headers/lib, not installed locally.
-    # add_subdirectory(udmx)
+    add_subdirectory(udmx)
     add_subdirectory(midi)
     add_subdirectory(enttecwing)
     add_subdirectory(hid)

@@ -28,9 +28,24 @@
 #include <cstdint>
 #include <vector>
 
+#include "audioevents.h"
+#include "percussioneventdetector.h"
+
 /** @addtogroup engine_audio Audio
  * @{
  */
+
+/** One onset hop's full detail: the combined (weighted-sum) onset value
+ *  used by the tempo estimator, plus the per-band rising-edge and raw
+ *  (pre-saturation) energy values used by PercussionEventDetector /
+ *  energy metering. Band order matches BeatOnsetExtractor's bands:
+ *  0 = kick (<200Hz), 1 = snare/vocals (200-4000Hz), 2 = hats (>=4kHz). */
+struct OnsetHop
+{
+    double combined = 0.0;
+    double band[3] = { 0.0, 0.0, 0.0 };       // saturated rising edge
+    double bandEnergy[3] = { 0.0, 0.0, 0.0 }; // raw positive-difference sum
+};
 
 /**
  * Onset front end: one band-combined onset value per 512 input samples
@@ -57,8 +72,13 @@ public:
      *  elapsed 512-sample hop to @a onsetsOut (possibly none). */
     void push(const float *samples, int count, std::vector<double> &onsetsOut);
 
+    /** Same as push(), but also reports the per-band detail behind
+     *  each hop's combined value (used for Kick/Snare/HiHat event
+     *  detection and energy metering). */
+    void pushDetailed(const float *samples, int count, std::vector<OnsetHop> &hopsOut);
+
 private:
-    void processHop(const float *chunk, std::vector<double> &onsetsOut);
+    void processHop(const float *chunk, std::vector<OnsetHop> &hopsOut);
 
 private:
     int m_sampleRate;
@@ -71,6 +91,15 @@ private:
 
     std::vector<double> m_prevMagLog;
     bool m_hasPrev;
+
+    // Fixed per-band FFT bin counts (kick <200Hz has ~19x fewer bins
+    // than the >=4kHz hats band, ~90x fewer than the actual full-width
+    // split at 4096-point FFT/44.1kHz): bandEnergy is reported as an
+    // average per bin, not a raw sum, so bands stay comparable to each
+    // other for classification regardless of how many bins each spans.
+    int m_bandBinCount[3];
+
+    std::vector<OnsetHop> m_hopsScratch; // reused by push(), avoids per-call allocation
 
     double m_refDecay;              // exp(-1 / (3 s * frame rate))
     double m_bandRefs[3];
@@ -122,6 +151,14 @@ public:
     /** Current beat period in frames, or 0 when unknown. */
     double beatPeriodFrames() const { return m_beatPeriodFrames; }
 
+    /** Monotonic beat counter for the most recent hop, or -1 when there
+     *  is no confident phase yet. Purely arithmetic on the existing
+     *  anchor+period beat grid - no new detection. */
+    long long beatIndex() const;
+
+    /** Fractional position within the current beat, 0..1 (0 when unknown). */
+    double beatPhase() const;
+
 private:
     void analyze();
     int raiseOctave(int idx, const std::vector<double> &scores) const;
@@ -161,6 +198,14 @@ private:
  * processAudio() returns true when a predicted beat falls inside the
  * block; bpm() exposes the estimator's tempo so the UI can display it
  * instead of re-deriving BPM from wall-clock signal spacing.
+ *
+ * Additionally (additive, issue: reliable Kick/Snare/HiHat events for
+ * per-instrument triggering rather than a raw amplitude threshold):
+ * the events-out overload of processAudio() also reports discrete
+ * Kick/Snare/HiHat/Beat/Bar AudioEvents, and analysisState() reports a
+ * continuous AudioAnalysisState (bpm, beat/bar position, per-band
+ * energy, kick/beat confidence, break detection) for consumers that
+ * want more than a single boolean per block.
  */
 class BeatTracker final
 {
@@ -177,19 +222,43 @@ public:
      *  occurred within this block. */
     bool processAudio(const int16_t *buffer, int bufferSize);
 
+    /** Same as processAudio(), but also appends every Kick/Snare/HiHat/
+     *  Beat/Bar event detected within this block to @a eventsOut. The
+     *  plain overload above is implemented in terms of this one, so
+     *  both stay perfectly in sync. */
+    bool processAudio(const int16_t *buffer, int bufferSize,
+                       std::vector<AudioEvent> &eventsOut);
+
     /** Current tempo estimate, 0.0 while unavailable/low-confidence. */
     double bpm() const { return m_detector.bpm(); }
 
     double confidence() const { return m_detector.confidence(); }
+
+    /** Continuous analysis state as of the last processAudio() call. */
+    const AudioAnalysisState &analysisState() const { return m_state; }
+
+private:
+    void updateState(double elapsedSec);
 
 private:
     int m_sampleRate;
     int m_channels;
     BeatOnsetExtractor m_extractor;
     AutoBpmDetector m_detector;
+    PercussionEventDetector m_percussion;
     std::vector<float> m_mono;
-    std::vector<double> m_onsets;
+    std::vector<OnsetHop> m_hops;
     double m_lastEmitFrame;
+    double m_audioTimeSec;
+
+    double m_bandEnergy[3];       // smoothed kick/mid/high energy
+    double m_lastKickConfidence;
+    double m_lastKickTimeSec;
+    double m_lastBeatTimeSec;
+    double m_breakSec;            // how long energy+kicks have been low
+    double m_maxKickBandOnsetThisBlock = 0.0; // see AudioAnalysisState::kickBandOnset
+
+    AudioAnalysisState m_state;
 };
 
 /** @} */

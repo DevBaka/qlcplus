@@ -23,6 +23,7 @@
 #include "vcwidget.h"
 #include "treemodel.h"
 #include "dmxsource.h"
+#include "audioevents.h"
 
 #define KXMLQLCVCAudioTriggers QStringLiteral("AudioTriggers")
 
@@ -149,19 +150,39 @@ public:
         /** Trigger state for beat-based widget actions */
         bool m_tapped = false;
         int m_skippedBeats = 0;
+
+        /** True for one of the fixed trailing "musical event" bars
+         *  (Kick/Snare/HiHat/Beat/Bar) rather than a frequency-band
+         *  spectrum bar. Set once, structurally, when the bar is
+         *  created - never toggled by the user. */
+        bool m_musicalEvent = false;
+        AudioEventType m_musicalEventType = AudioEventType::Kick;
     };
+
+    /** Number of fixed trailing musical-event bars appended after the
+     *  volume + spectrum bars (Kick, Snare/Clap, HiHat, Beat, Bar).
+     *  Reusing the existing threshold/divisor/DMX/Function/Widget bar
+     *  machinery for real onset-detected events instead of a raw
+     *  amplitude threshold: each event pulses the bar's value high then
+     *  immediately back low (see slotAudioEventDetected()), so the
+     *  existing "value crosses maxThreshold -> fire, crosses
+     *  minThreshold -> release" + divisor logic fires exactly once per
+     *  detected event, completely unchanged. */
+    static const int MusicalEventBarCount = 5;
 
     Q_INVOKABLE void selectBarForEditing(int index);
     QVariantList barsInfo() const;
 
     Q_INVOKABLE void setBarType(BarType type);
     Q_INVOKABLE void setBarThresholds(uchar minThr, uchar maxThr);
+    Q_INVOKABLE void setBarDivisor(int value);
     Q_INVOKABLE void setBarFunction(quint32 functionId);
     Q_INVOKABLE void setBarWidget(quint32 widgetId);
     void setBarDmxChannels(QList<SceneValue>list);
 
 protected slots:
     void slotSpectrumDataChanged(double *spectrumBands, int size, double maxMagnitude, quint32 power);
+    void slotAudioEventDetected(int type, double timestampSec, double confidence, double strength);
 
 signals:
     void barsInfoChanged();

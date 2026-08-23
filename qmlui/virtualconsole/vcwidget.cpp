@@ -214,6 +214,7 @@ QString VCWidget::typeToString(int type)
         case AudioTriggersWidget: return QString(tr("Audio Triggers"));
         case AnimationWidget: return QString(tr("Animation"));
         case ClockWidget: return QString(tr("Clock"));
+        case MusicReactiveWidget: return QString(tr("Music Reactive"));
         case UnknownWidget:
         default:
             return QString(tr("Unknown"));
@@ -236,6 +237,7 @@ QString VCWidget::typeToIcon(int type)
         case AudioTriggersWidget: return QString("qrc:/audioinput.svg");
         case AnimationWidget: return QString("qrc:/rgbmatrix.svg");
         case ClockWidget: return QString("qrc:/clock.svg");
+        case MusicReactiveWidget: return QString("qrc:/audioinput.svg");
         case UnknownWidget:
         default:
              return QString("qrc:/virtualconsole.svg");
@@ -257,6 +259,7 @@ VCWidget::WidgetType VCWidget::stringToType(QString str)
     else if (str == "Audio Triggers") return AudioTriggersWidget;
     else if (str == "Animation") return AnimationWidget;
     else if (str == "Clock") return ClockWidget;
+    else if (str == "Music Reactive") return MusicReactiveWidget;
 
     return UnknownWidget;
 }

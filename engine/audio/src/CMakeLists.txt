@@ -8,7 +8,9 @@ add_library(${module_name}
     audioparameters.cpp audioparameters.h
     audioplugincache.cpp audioplugincache.h
     audiorenderer.cpp audiorenderer.h
+    audioevents.h
     beattracker.cpp beattracker.h
+    percussioneventdetector.cpp percussioneventdetector.h
 )
 set_property(TARGET ${module_name} PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories(${module_name} PUBLIC

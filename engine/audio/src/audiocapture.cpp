@@ -22,8 +22,10 @@
 #include <QDateTime>
 #include <QDebug>
 #include <qmath.h>
+#include <vector>
 
 #include "audiocapture.h"
+#include "audioevents.h"
 #include "beattracker.h"
 
 #define USE_HANNING
@@ -348,8 +350,36 @@ void AudioCapture::run()
                 QMutexLocker locker(&m_mutex);
                 processData();
 
-                if (m_beatTracker->processAudio(m_audioBuffer, m_captureSize))
+                std::vector<AudioEvent> events;
+                bool beat = m_beatTracker->processAudio(m_audioBuffer, m_captureSize, events);
+                if (beat)
                     emit beatDetected(qRound(m_beatTracker->bpm()));
+
+                // Emit the continuous state BEFORE the discrete events for
+                // this same block, even though both are already fully
+                // up to date on the C++ side by this point: these are
+                // queued cross-thread signals, and a receiver that caches
+                // per-block values from analysisStateChanged (e.g.
+                // VCMusicReactive's meter levels, used to gate whether a
+                // Kick event is "loud enough") would otherwise still be
+                // holding the *previous* block's cached value when its
+                // audioEventDetected handler runs first - rejecting a
+                // kick whose own block's level hadn't been delivered yet.
+                const AudioAnalysisState &st = m_beatTracker->analysisState();
+                emit analysisStateChanged(st.bpm, st.beatPhase, st.beatIndex, st.barIndex,
+                                          st.energy, st.bassEnergy, st.midEnergy, st.highEnergy,
+                                          st.kickConfidence, st.beatConfidence, st.inBreak,
+                                          st.peakBandValue, st.peakThreshold, st.kickBandOnset);
+
+                for (const AudioEvent &ev : events)
+                {
+                    static const char *typeNames[] = { "Kick", "Snare", "HiHat", "Beat", "Bar" };
+                    int typeIdx = int(ev.type);
+                    qDebug() << "[AudioCapture] event"
+                             << (typeIdx >= 0 && typeIdx < 5 ? typeNames[typeIdx] : "?")
+                             << "confidence" << ev.confidence << "strength" << ev.strength;
+                    emit audioEventDetected(int(ev.type), ev.timestampSec, ev.confidence, ev.strength);
+                }
             }
             else
             {

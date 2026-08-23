@@ -34,6 +34,7 @@
 #include "inputpatch.h"
 #include "treemodel.h"
 #include "vccuelist.h"
+#include "vcmusicreactive.h"
 #include "vcbutton.h"
 #include "vcslider.h"
 #include "vcframe.h"
@@ -110,6 +111,7 @@ VirtualConsole::VirtualConsole(QQuickView *view, Doc *doc,
     qmlRegisterType<VCClock>("org.qlcplus.classes", 1, 0, "VCClock");
     qmlRegisterType<VCClockSchedule>("org.qlcplus.classes", 1, 0, "VCClockSchedule");
     qmlRegisterType<VCCueList>("org.qlcplus.classes", 1, 0, "VCCueList");
+    qmlRegisterType<VCMusicReactive>("org.qlcplus.classes", 1, 0, "VCMusicReactive");
 
     connect(m_doc->inputOutputMap(), SIGNAL(inputValueChanged(quint32,quint32,uchar,QString)),
             this, SLOT(slotInputValueChanged(quint32,quint32,uchar)));
@@ -988,6 +990,7 @@ QString VirtualConsole::widgetIcon(int type) const
         case VCWidget::AudioTriggersWidget: return "qrc:/audiotriggers.svg";
         case VCWidget::AnimationWidget: return "qrc:/animation.svg";
         case VCWidget::ClockWidget: return "qrc:/clock.svg";
+        case VCWidget::MusicReactiveWidget: return "qrc:/audiotriggers.svg";
         default:
             qDebug() << "Unhandled widget type" << type << ". FIXME";
         break;

@@ -1,0 +1,11 @@
+
+Q Light Controller Plus version 5.3.0 GIT
+This program is licensed under the terms of the Apache 2.0 license.
+Copyright (c) Heikki Junnila (hjunnila@users.sf.net)
+Copyright (c) Massimo Callegari (massimocallegari@yahoo.it)
+
+bool EnttecWing::reBindSocket() "Die angegebene Adresse ist bereits in Gebrauch"
+Using Qt multimedia with FFmpeg version 7.1.2 GPL version 3 or later
+virtual bool VCFrame::loadXML(QXmlStreamReader&) Unknown frame tag: "AllowResize"
+virtual bool VCFrame::loadXML(QXmlStreamReader&) Unknown frame tag: "Disabled"
+<Unknown File>: Invalid empty URL

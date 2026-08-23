@@ -44,6 +44,7 @@ Rectangle
         ListElement { name: qsTr("Animation"); type: "Animation"; icon: "animation" }
         ListElement { name: qsTr("Label"); type: "Label"; icon: "label" }
         ListElement { name: qsTr("Audio Triggers"); type: "Audio Triggers"; icon: "audiotriggers" }
+        ListElement { name: qsTr("Music Reactive"); type: "Music Reactive"; icon: "audiotriggers" }
         ListElement { name: qsTr("Clock"); type: "Clock"; icon: "clock" }
     }
 

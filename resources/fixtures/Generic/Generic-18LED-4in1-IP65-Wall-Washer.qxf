@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE FixtureDefinition>
+<FixtureDefinition xmlns="http://www.qlcplus.org/FixtureDefinition">
+ <Creator>
+  <Name>daslight_to_qlcplus.py</Name>
+  <Version>1.0</Version>
+  <Author>Converted from Daslight 5</Author>
+ </Creator>
+ <Manufacturer>Generic</Manufacturer>
+ <Model>18LED 4in1 IP65 Wall Washer</Model>
+ <Type>LED Bar (Beams)</Type>
+ <Channel Name="Dimmer" Preset="IntensityDimmer"/>
+ <Channel Name="Red" Preset="IntensityRed"/>
+ <Channel Name="Green" Preset="IntensityGreen"/>
+ <Channel Name="Blue" Preset="IntensityBlue"/>
+ <Channel Name="White" Preset="IntensityWhite"/>
+ <Channel Name="Strobe">
+  <Group Byte="0">Shutter</Group>
+  <Capability Min="0" Max="0">Strobe off</Capability>
+  <Capability Min="1" Max="255">Strobe</Capability>
+ </Channel>
+ <Channel Name="Function">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="127">Choose Color</Capability>
+  <Capability Min="128" Max="169">2 Color Jump Change</Capability>
+  <Capability Min="170" Max="210">Colorful Jump Change</Capability>
+  <Capability Min="211" Max="255">Color Gradual Change</Capability>
+ </Channel>
+ <Channel Name="Function Speed">
+  <Group Byte="0">Speed</Group>
+  <Capability Min="0" Max="255">Speed</Capability>
+ </Channel>
+ <Mode Name="8 Channel">
+  <Channel Number="0">Dimmer</Channel>
+  <Channel Number="1">Red</Channel>
+  <Channel Number="2">Green</Channel>
+  <Channel Number="3">Blue</Channel>
+  <Channel Number="4">White</Channel>
+  <Channel Number="5">Strobe</Channel>
+  <Channel Number="6">Function</Channel>
+  <Channel Number="7">Function Speed</Channel>
+ </Mode>
+ <Physical>
+  <Bulb Type="LED" Lumens="0" ColourTemperature="7000"/>
+  <Dimensions Weight="0" Width="300" Height="420" Depth="300"/>
+  <Lens Name="Other" DegreesMin="16" DegreesMax="60"/>
+  <Focus Type="Fixed" PanMax="360" TiltMax="220"/>
+  <Technical PowerConsumption="0" DmxConnector="3-pin"/>
+ </Physical>
+</FixtureDefinition>

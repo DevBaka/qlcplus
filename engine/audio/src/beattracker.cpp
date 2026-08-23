@@ -22,6 +22,7 @@
 */
 
 #include <algorithm>
+#include <climits>
 #include <cmath>
 #include <cstring>
 
@@ -147,6 +148,16 @@ BeatOnsetExtractor::BeatOnsetExtractor(int sampleRate)
     m_window.assign(w.begin(), w.end()); // float32 like the reference
     m_re.resize(m_fftSize);
     m_im.resize(m_fftSize);
+
+    m_bandBinCount[0] = m_bandBinCount[1] = m_bandBinCount[2] = 0;
+    const int bins = m_fftSize / 2 + 1;
+    for (int k = 0; k < bins; k++)
+    {
+        double freq = double(k) * m_sampleRate / m_fftSize;
+        int band = (freq < 200.0) ? 0 : (freq < 4000.0 ? 1 : 2);
+        m_bandBinCount[band]++;
+    }
+
     reset();
 }
 
@@ -168,11 +179,20 @@ void BeatOnsetExtractor::reset()
 void BeatOnsetExtractor::push(const float *samples, int count,
                               std::vector<double> &onsetsOut)
 {
+    m_hopsScratch.clear();
+    pushDetailed(samples, count, m_hopsScratch);
+    for (const OnsetHop &hop : m_hopsScratch)
+        onsetsOut.push_back(hop.combined);
+}
+
+void BeatOnsetExtractor::pushDetailed(const float *samples, int count,
+                                      std::vector<OnsetHop> &hopsOut)
+{
     m_pending.insert(m_pending.end(), samples, samples + count);
     size_t consumed = 0;
     while (m_pending.size() - consumed >= size_t(m_hop))
     {
-        processHop(m_pending.data() + consumed, onsetsOut);
+        processHop(m_pending.data() + consumed, hopsOut);
         consumed += m_hop;
     }
     if (consumed > 0)
@@ -180,7 +200,7 @@ void BeatOnsetExtractor::push(const float *samples, int count,
 }
 
 void BeatOnsetExtractor::processHop(const float *chunk,
-                                    std::vector<double> &onsetsOut)
+                                    std::vector<OnsetHop> &hopsOut)
 {
     // Slide the analysis window by one hop
     std::memmove(m_buffer.data(), m_buffer.data() + m_hop,
@@ -205,7 +225,7 @@ void BeatOnsetExtractor::processHop(const float *chunk,
     {
         m_prevMagLog = magLog;
         m_hasPrev = true;
-        onsetsOut.push_back(0.0);
+        hopsOut.push_back(OnsetHop());
         return;
     }
 
@@ -230,17 +250,26 @@ void BeatOnsetExtractor::processHop(const float *chunk,
     // doesn't - shapes equalize), combine with hats down-weighted so
     // subdivision does not read as double tempo.
     static const double bandWeights[3] = { 1.0, 1.0, 0.4 };
-    double onset = 0.0;
+    OnsetHop hop;
     for (int i = 0; i < 3; i++)
     {
         double v = bandSum[i];
         double ref = std::max(v, m_bandRefs[i] * m_refDecay);
         m_bandRefs[i] = ref;
         double sat = (ref > 0.0) ? v / (v + 0.5 * ref) : 0.0;
-        onset += bandWeights[i] * std::max(0.0, sat - m_bandPrev[i]);
+        double rise = std::max(0.0, sat - m_bandPrev[i]);
         m_bandPrev[i] = sat;
+
+        hop.band[i] = rise;
+        // Average per bin, not raw sum: the three bands span very
+        // different bin counts (kick <200Hz has ~19x fewer bins than
+        // hats >=4kHz at 4096-pt FFT/44.1kHz), so a raw sum would make
+        // any broadband transient look "high-band-dominant" regardless
+        // of which instrument it actually was.
+        hop.bandEnergy[i] = v / double(m_bandBinCount[i] > 0 ? m_bandBinCount[i] : 1);
+        hop.combined += bandWeights[i] * rise;
     }
-    onsetsOut.push_back(onset);
+    hopsOut.push_back(hop);
 }
 
 /*****************************************************************************
@@ -339,6 +368,26 @@ double AutoBpmDetector::nextBeatFrame() const
     double framesNow = double(m_count - 1);
     double k = std::ceil((framesNow - m_beatAnchorFrame) / m_beatPeriodFrames);
     return m_beatAnchorFrame + k * m_beatPeriodFrames;
+}
+
+long long AutoBpmDetector::beatIndex() const
+{
+    if (m_confidence < 0.15 || !m_hasPhase || m_beatPeriodFrames <= 0.0)
+        return -1;
+    double framesNow = double(m_count - 1);
+    return static_cast<long long>(
+        std::floor((framesNow - m_beatAnchorFrame) / m_beatPeriodFrames));
+}
+
+double AutoBpmDetector::beatPhase() const
+{
+    if (m_confidence < 0.15 || !m_hasPhase || m_beatPeriodFrames <= 0.0)
+        return 0.0;
+    double framesNow = double(m_count - 1);
+    double rel = std::fmod(framesNow - m_beatAnchorFrame, m_beatPeriodFrames);
+    if (rel < 0.0)
+        rel += m_beatPeriodFrames;
+    return rel / m_beatPeriodFrames;
 }
 
 void AutoBpmDetector::analyze()
@@ -565,7 +614,14 @@ BeatTracker::BeatTracker(int sampleRate, int channels)
     , m_channels(std::max(1, channels))
     , m_extractor(m_sampleRate)
     , m_detector(m_extractor.frameRateHz())
+    , m_percussion(m_extractor.frameRateHz())
     , m_lastEmitFrame(-1.0)
+    , m_audioTimeSec(0.0)
+    , m_bandEnergy{ 0.0, 0.0, 0.0 }
+    , m_lastKickConfidence(0.0)
+    , m_lastKickTimeSec(-1e9)
+    , m_lastBeatTimeSec(-1e9)
+    , m_breakSec(0.0)
 {
 }
 
@@ -577,17 +633,40 @@ void BeatTracker::setFormat(int sampleRate, int channels)
     m_channels = std::max(1, channels);
     m_extractor = BeatOnsetExtractor(m_sampleRate);
     m_detector = AutoBpmDetector(m_extractor.frameRateHz());
+    m_percussion = PercussionEventDetector(m_extractor.frameRateHz());
     m_lastEmitFrame = -1.0;
+    m_audioTimeSec = 0.0;
+    m_bandEnergy[0] = m_bandEnergy[1] = m_bandEnergy[2] = 0.0;
+    m_lastKickConfidence = 0.0;
+    m_lastKickTimeSec = -1e9;
+    m_lastBeatTimeSec = -1e9;
+    m_breakSec = 0.0;
+    m_state = AudioAnalysisState();
 }
 
 void BeatTracker::reset()
 {
     m_extractor.reset();
     m_detector.reset();
+    m_percussion.reset();
     m_lastEmitFrame = -1.0;
+    m_audioTimeSec = 0.0;
+    m_bandEnergy[0] = m_bandEnergy[1] = m_bandEnergy[2] = 0.0;
+    m_lastKickConfidence = 0.0;
+    m_lastKickTimeSec = -1e9;
+    m_lastBeatTimeSec = -1e9;
+    m_breakSec = 0.0;
+    m_state = AudioAnalysisState();
 }
 
 bool BeatTracker::processAudio(const int16_t *buffer, int bufferSize)
+{
+    std::vector<AudioEvent> discard;
+    return processAudio(buffer, bufferSize, discard);
+}
+
+bool BeatTracker::processAudio(const int16_t *buffer, int bufferSize,
+                               std::vector<AudioEvent> &eventsOut)
 {
     if (!buffer || bufferSize <= 0)
         return false;
@@ -607,15 +686,46 @@ bool BeatTracker::processAudio(const int16_t *buffer, int bufferSize)
         m_mono[i] = float(double(acc) / (32768.0 * m_channels));
     }
 
-    m_onsets.clear();
-    m_extractor.push(m_mono.data(), frames, m_onsets);
+    m_hops.clear();
+    m_extractor.pushDetailed(m_mono.data(), frames, m_hops);
+
+    const double hopSec = 1.0 / m_extractor.frameRateHz();
 
     // Advance the detector hop by hop and emit on predicted-beat
     // crossings at hop resolution (~11.6 ms at 44.1 kHz)
     bool beat = false;
-    for (size_t i = 0; i < m_onsets.size(); i++)
+    for (size_t i = 0; i < m_hops.size(); i++)
     {
-        m_detector.pushOnset(m_onsets[i]);
+        const OnsetHop &hop = m_hops[i];
+        const double nowSec = m_audioTimeSec;
+        m_audioTimeSec += hopSec;
+
+        // Smoothed per-band energy (independent one-pole filter on the
+        // raw pre-saturation band sum), used only for the continuous
+        // energy/break metrics - never for Kick/Snare/HiHat detection
+        // itself, which stays purely onset-based.
+        for (int b = 0; b < 3; b++)
+            m_bandEnergy[b] += 0.15 * (hop.bandEnergy[b] - m_bandEnergy[b]);
+
+        // Kick band (index 0) ONLY rising edge, max over every hop in
+        // this block - see AudioAnalysisState::kickBandOnset. Reset once
+        // consumed into m_state at the bottom of updateState().
+        m_maxKickBandOnsetThisBlock = std::max(m_maxKickBandOnsetThisBlock, hop.band[0]);
+
+        m_detector.pushOnset(hop.combined);
+
+        std::vector<AudioEvent> percEvents;
+        m_percussion.push(hop.band, hop.bandEnergy, nowSec, percEvents);
+        for (const AudioEvent &ev : percEvents)
+        {
+            if (ev.type == AudioEventType::Kick)
+            {
+                m_lastKickConfidence = ev.confidence;
+                m_lastKickTimeSec = nowSec;
+            }
+            eventsOut.push_back(ev);
+        }
+
         double next = m_detector.nextBeatFrame();
         if (next < 0.0)
             continue;
@@ -630,7 +740,61 @@ bool BeatTracker::processAudio(const int16_t *buffer, int bufferSize)
         {
             beat = true;
             m_lastEmitFrame = framesNow;
+            m_lastBeatTimeSec = nowSec;
+            eventsOut.push_back(AudioEvent{ AudioEventType::Beat, nowSec,
+                                            m_detector.confidence(), 1.0 });
+
+            long long bIdx = m_detector.beatIndex();
+            if (bIdx >= 0 && (bIdx % 4) == 0)
+                eventsOut.push_back(AudioEvent{ AudioEventType::Bar, nowSec,
+                                                m_detector.confidence(), 1.0 });
         }
     }
+
+    const double blockSec = double(frames) / double(m_sampleRate);
+    updateState(blockSec);
     return beat;
+}
+
+void BeatTracker::updateState(double elapsedSec)
+{
+    m_state.bpm = m_detector.bpm();
+    m_state.beatPhase = m_detector.beatPhase();
+    long long bi = m_detector.beatIndex();
+    m_state.beatIndex = (bi >= 0 && bi <= INT_MAX) ? int(bi) : -1;
+    m_state.barIndex = (m_state.beatIndex >= 0) ? m_state.beatIndex / 4 : -1;
+
+    m_state.bassEnergy = m_bandEnergy[0];
+    m_state.midEnergy = m_bandEnergy[1];
+    m_state.highEnergy = m_bandEnergy[2];
+    m_state.energy = m_bandEnergy[0] + m_bandEnergy[1] + m_bandEnergy[2];
+
+    m_state.beatConfidence = m_detector.confidence();
+    m_state.timeSinceLastKick = (m_lastKickTimeSec > -1e8) ? (m_audioTimeSec - m_lastKickTimeSec) : -1.0;
+    m_state.timeSinceLastBeat = (m_lastBeatTimeSec > -1e8) ? (m_audioTimeSec - m_lastBeatTimeSec) : -1.0;
+
+    m_state.peakBandValue = m_percussion.lastPeakValue();
+    m_state.peakThreshold = m_percussion.lastThreshold();
+    m_state.kickBandOnset = m_maxKickBandOnsetThisBlock;
+    m_maxKickBandOnsetThisBlock = 0.0;
+
+    // Kick confidence decays smoothly between hits rather than dropping
+    // to 0 the instant after a kick (so a UI/consumer sampling this
+    // between hops still sees "recently confident", not a flicker).
+    const double decayTauSec = 0.3;
+    m_state.kickConfidence = (m_state.timeSinceLastKick >= 0.0)
+        ? m_lastKickConfidence * std::exp(-m_state.timeSinceLastKick / decayTauSec)
+        : 0.0;
+
+    // Break: no kick drum detected for a sustained stretch (e.g. a
+    // vocal/pad break). Deliberately keyed off time-since-last-kick
+    // alone, NOT total broadband energy - a break can still have
+    // vocals/mids/highs playing at a normal level, so gating on total
+    // energy (as this used to do, against a near-silence floor) almost
+    // never fired for real tracks. Purely a continuous-value read-out -
+    // callers decide what to do with it.
+    static constexpr double kBreakHoldSec = 2.0;
+    const bool quietNow = (m_state.timeSinceLastKick < 0.0) || (m_state.timeSinceLastKick > 1.0);
+    m_breakSec = quietNow ? (m_breakSec + elapsedSec) : 0.0;
+    m_state.inBreak = m_breakSec >= kBreakHoldSec;
 }

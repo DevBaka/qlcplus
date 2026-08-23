@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE FixtureDefinition>
+<FixtureDefinition xmlns="http://www.qlcplus.org/FixtureDefinition">
+ <Creator>
+  <Name>daslight_to_qlcplus.py</Name>
+  <Version>1.0</Version>
+  <Author>Converted from Daslight 5</Author>
+ </Creator>
+ <Manufacturer>Pure Light</Manufacturer>
+ <Model>LED NANO PAR UV BLACK</Model>
+ <Type>Color Changer</Type>
+ <Channel Name="Function">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="10">NoFunction</Capability>
+  <Capability Min="11" Max="50">Static UV Colors</Capability>
+  <Capability Min="51" Max="100">UV Color Jump</Capability>
+  <Capability Min="101" Max="150">UV Color Fade</Capability>
+  <Capability Min="151" Max="200">Sound Flash</Capability>
+  <Capability Min="201" Max="255">Strobe</Capability>
+ </Channel>
+ <Channel Name="UV" Preset="IntensityUV"/>
+ <Channel Name="Speed">
+  <Group Byte="0">Speed</Group>
+  <Capability Min="0" Max="255">Speed</Capability>
+ </Channel>
+ <Channel Name="Dimmer" Preset="IntensityDimmer"/>
+ <Channel Name="UV 1" Preset="IntensityUV"/>
+ <Channel Name="UV 2" Preset="IntensityUV"/>
+ <Channel Name="UV 3" Preset="IntensityUV"/>
+ <Channel Name="UV 4" Preset="IntensityUV"/>
+ <Mode Name="8 Channel">
+  <Channel Number="0">Function</Channel>
+  <Channel Number="1">UV</Channel>
+  <Channel Number="2">Speed</Channel>
+  <Channel Number="3">Dimmer</Channel>
+  <Channel Number="4">UV 1</Channel>
+  <Channel Number="5">UV 2</Channel>
+  <Channel Number="6">UV 3</Channel>
+  <Channel Number="7">UV 4</Channel>
+ </Mode>
+ <Physical>
+  <Bulb Type="LED" Lumens="0" ColourTemperature="7000"/>
+  <Dimensions Weight="0" Width="350" Height="370" Depth="180"/>
+  <Lens Name="Other" DegreesMin="25" DegreesMax="60"/>
+  <Focus Type="Fixed" PanMax="360" TiltMax="220"/>
+  <Technical PowerConsumption="15" DmxConnector="3-pin"/>
+ </Physical>
+</FixtureDefinition>
