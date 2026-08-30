@@ -38,6 +38,9 @@
 
 #define UDMX_SET_CHANNEL_RANGE 0x0002 /* Command to set n channel values */
 
+/* The uDMX/AVLdiy clone firmware exposes a single vendor-specific interface. */
+#define UDMX_USB_INTERFACE 0
+
 #define SETTINGS_FREQUENCY "udmx/frequency"
 #define SETTINGS_CHANNELS "udmx/channels"
 
@@ -189,6 +192,24 @@ bool UDMXDevice::open()
     if (m_handle == NULL)
         return false;
 
+    // Detach a kernel driver if one is bound to the interface (Linux only;
+    // returns LIBUSB_ERROR_NOT_SUPPORTED elsewhere, which is fine to ignore).
+    libusb_set_auto_detach_kernel_driver(m_handle, 1);
+
+    // The control transfers below target this interface directly
+    // (LIBUSB_RECIPIENT_INTERFACE). On Linux this could slide through
+    // unclaimed in some setups, but Windows' WinUSB/libusbK backends
+    // reject transfers to an interface libusb hasn't claimed - without
+    // this, output silently fails on every frame.
+    int claimRet = libusb_claim_interface(m_handle, UDMX_USB_INTERFACE);
+    if (claimRet < 0)
+    {
+        qWarning() << "Unable to claim uDMX USB interface:" << libusb_strerror(libusb_error(claimRet));
+        libusb_close(m_handle);
+        m_handle = NULL;
+        return false;
+    }
+
     start();
 
     return true;
@@ -199,7 +220,10 @@ void UDMXDevice::close()
     stop();
 
     if (m_device != NULL && m_handle != NULL)
+    {
+        libusb_release_interface(m_handle, UDMX_USB_INTERFACE);
         libusb_close(m_handle);
+    }
 
     m_handle = NULL;
 }
