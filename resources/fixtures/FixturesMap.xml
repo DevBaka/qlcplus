@@ -27,6 +27,9 @@
   <M n="AGPtek">
     <F n="AGPtek-RGB-6ch-crystal-ball" m="RGB 6ch crystal ball"/>
   </M>
+  <M n="Alien">
+    <F n="Alien-Cheap-LED-Bar" m="Cheap LED Bar"/>
+  </M>
   <M n="Alkalite">
     <F n="Alkalite-Octopod-DP-80" m="Octopod DP-80"/>
   </M>
@@ -868,6 +871,7 @@
     <F n="Eurolite-LED-PARty-Hybrid-spot" m="LED PARty Hybrid Spot"/>
     <F n="Eurolite-LED-Party-Panel-RGB+UV" m="LED Party Panel RGB+UV"/>
     <F n="Eurolite-LED-PARty-RGBW" m="LED PARty RGBW"/>
+    <F n="Eurolite-LED-PARty-Spot" m="LED PARty Spot"/>
     <F n="Eurolite-LED-PARty-TCL-spot" m="LED PARty TCL spot"/>
     <F n="Eurolite-LED-PIX-12-HCL-Bar" m="LED PIX-12 HCL Bar"/>
     <F n="Eurolite-LED-PIX-144-72" m="LED PIX-144/72"/>
@@ -1039,9 +1043,11 @@
     <F n="Futurelight-XF-200" m="XF-200"/>
   </M>
   <M n="Generic">
+    <F n="Generic-18LED-4in1-IP65-Wall-Washer" m="18LED 4in1 IP65 Wall Washer"/>
     <F n="Generic-Generic-RGB" m="Generic RGB"/>
     <F n="Generic-Generic-RGBW" m="Generic RGBW"/>
     <F n="Generic-Generic-Smoke" m="Generic Smoke"/>
+    <F n="Generic-LED-PAR-12-RGBW" m="LED PAR 12 RGBW"/>
   </M>
   <M n="Geni">
     <F n="Geni-Mojo-Color-Moc" m="Mojo Color Moc"/>
@@ -1287,6 +1293,7 @@
   </M>
   <M n="Lixada">
     <F n="Lixada-12-RGBW-LED-Par-Light" m="12 RGBW LED Par Light"/>
+    <F n="Lixada-12RGBW-LED-PAR-Light-30W" m="12RGBW LED PAR Light 30W"/>
     <F n="Lixada-5LED-50W-Beam-Wash-Double-Sides-RGBW" m="5LED 50W Beam Wash Double Sides RGBW"/>
     <F n="Lixada-Mini-Gobo-Moving-Head" m="Mini Gobo Moving Head"/>
     <F n="Lixada-Mini-Wash-RGBW" m="Mini Wash RGBW"/>
@@ -1534,6 +1541,12 @@
     <F n="Pulse-Impstar-40" m="Impstar 40"/>
     <F n="Pulse-LEDBAR-320" m="LED BAR 320"/>
     <F n="Pulse-SlimLite-56" m="SlimLite 56"/>
+  </M>
+  <M n="Pure-Light">
+    <F n="Pure-Light-FX-Mini-Derby-2" m="FX Mini Derby 2"/>
+    <F n="Pure-Light-LED-BAR-18" m="LED BAR 18"/>
+    <F n="Pure-Light-LED-NANO-PAR-UV-BLACK" m="LED NANO PAR UV BLACK"/>
+    <F n="Pure-Light-MUVY-SpotOne-10-12CH" m="MUVY SpotOne 10_12CH"/>
   </M>
   <M n="QTX">
     <F n="QTX-Flare-1000" m="Flare-1000"/>
@@ -1798,6 +1811,7 @@
     <F n="Stairville-DJ-Lase-150-RGY-MkII" m="DJ Lase 150-RGY MkII"/>
     <F n="Stairville-DJ-Lase-25+25-G-MK-II" m="DJ Lase 25+25-G MK-II"/>
     <F n="Stairville-DJ-Lase-40-G-MK-III" m="DJ Lase 40-G MK-III"/>
+    <F n="Stairville-DJ-Lase-400-B-Blue" m="DJ Lase 400-B Blue"/>
     <F n="Stairville-DJ-Lase-BlueStar-MK-II-LED" m="DJ Lase BlueStar MK-II LED"/>
     <F n="Stairville-DJ-Lase-GR-140-RGY-MKII" m="DJ Lase GR-140 RGY MKII"/>
     <F n="Stairville-DJ-Lase-Polar-200" m="DJ Lase Polar 200"/>
@@ -1940,6 +1954,7 @@
     <F n="UKing-ZQ01495-200W-Three-in-one-Four-eye-COB-Lamp" m="ZQ01495 200W Three-in-one Four-eye COB Lamp"/>
     <F n="UKing-ZQ01513-100WCOB-Cast-Aluminum-Park-Light" m="ZQ01513 100WCOB Cast Aluminum Park Light"/>
     <F n="UKing-ZQ02021-Beam-Pro" m="ZQ02021 Beam Pro"/>
+    <F n="UKing-ZQ02040" m="ZQ02040"/>
     <F n="UKing-ZQ02102-Moving-Head" m="ZQ02102 Moving Head"/>
     <F n="UKing-ZQ02319-Mini-40W-Beam-Moving-Head" m="ZQ-02319"/>
     <F n="UKing-ZQ06122-9-Eye-COB-Matrix" m="ZQ06122 9-Eye COB Matrix"/>
@@ -1969,6 +1984,7 @@
     <F n="Varytec-Easy-Move-LED-XS-Spot" m="Easy Move LED XS Spot"/>
     <F n="Varytec-Easy-Move-LED-XS-Wash" m="Easy Move LED XS Wash"/>
     <F n="Varytec-Easy-Scan-XT-Mini" m="Easy Scan XT Mini"/>
+    <F n="Varytec-Giga-Bar-240-LED-RGB" m="Giga Bar 240 LED RGB"/>
     <F n="Varytec-Giga-Bar-HEX-3" m="Giga Bar HEX 3"/>
     <F n="Varytec-Giga-Bar-LED-240-RGB-" m="Giga Bar LED 240 RGB "/>
     <F n="Varytec-Giga-Bar-Pix-8-RGB" m="Giga Bar Pix 8 RGB"/>

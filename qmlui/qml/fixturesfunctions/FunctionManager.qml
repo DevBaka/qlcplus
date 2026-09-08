@@ -213,6 +213,18 @@ Rectangle
 
             IconButton
             {
+                z: 2
+                width: height
+                height: topBar.height - 2
+                bgColor: UISettings.bgMedium
+                faColor: "white"
+                faSource: FontAwesome.fa_robot
+                tooltip: qsTr("KI Effekt Generator")
+                onClicked: aiEffectPopup.open()
+            }
+
+            IconButton
+            {
                 id: searchFunc
                 z: 2
                 width: height
@@ -435,4 +447,9 @@ Rectangle
       } // ListView
 
     } // ColumnLayout
+
+    PopupAIEffectGenerator
+    {
+        id: aiEffectPopup
+    }
 }

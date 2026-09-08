@@ -525,6 +525,18 @@ public:
     /** Return a input source reference that matches the specified $id, $universe and $channel */
     QSharedPointer<QLCInputSource> inputSource(quint32 id, quint32 universe, quint32 channel) const;
 
+    /** True if a real MIDI/keyboard mapping has actually been learned for
+     *  external control $id (i.e. some entry of m_inputSources targets
+     *  it) - distinct from $id simply being a valid, registered control
+     *  (see registerExternalControl()): every control a widget exposes
+     *  gets registered unconditionally as soon as it exists (e.g. every
+     *  VCMusicReactive Profile/Chaser/Idle entry, whether or not the user
+     *  has ever assigned anything to it), so registration alone can't be
+     *  used as a "this one's already learned" indicator - QML code that
+     *  wants to show that state (e.g. a "MIDI already assigned" badge)
+     *  must check this instead of just "controlId >= 0". */
+    Q_INVOKABLE bool isControlLearned(quint32 id) const;
+
     Q_INVOKABLE QVariant inputSourceFullInfo(quint32 universe, quint32 channel);
 
     /**

@@ -705,6 +705,23 @@ QSharedPointer<QLCInputSource> VCWidget::inputSource(quint32 id, quint32 univers
     return QSharedPointer<QLCInputSource>();
 }
 
+bool VCWidget::isControlLearned(quint32 id) const
+{
+    for (QSharedPointer<QLCInputSource> source : m_inputSources)
+        // isValid() (real universe/channel) matters here, not just a
+        // matching id: starting to learn a control (see e.g.
+        // VCMusicReactive::learnMidiForControl()) immediately adds a
+        // placeholder QLCInputSource with the right id but an invalid
+        // universe/channel, filled in only once an actual MIDI/keyboard
+        // event arrives - without this check, a control would flash
+        // "already learned" the instant learning starts, before the
+        // user has pressed anything.
+        if (source->id() == id && source->isValid())
+            return true;
+
+    return false;
+}
+
 QVariant VCWidget::inputSourceFullInfo(quint32 universe, quint32 channel)
 {
     QSharedPointer<QLCInputSource> source = inputSource(universe, channel);

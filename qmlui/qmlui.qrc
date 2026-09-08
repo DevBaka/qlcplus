@@ -63,6 +63,7 @@
 
     <!-- Popup system -->
     <file alias="CustomPopupDialog.qml">qml/popup/CustomPopupDialog.qml</file>
+    <file alias="PopupAIEffectGenerator.qml">qml/popup/PopupAIEffectGenerator.qml</file>
     <file alias="PopupAbout.qml">qml/popup/PopupAbout.qml</file>
     <file alias="PopupAnimationPreset.qml">qml/popup/PopupAnimationPreset.qml</file>
     <file alias="PopupAudioConfiguration.qml">qml/popup/PopupAudioConfiguration.qml</file>
@@ -84,6 +85,7 @@
     <file alias="PopupManualInputSource.qml">qml/popup/PopupManualInputSource.qml</file>
     <file alias="PopupInputChannelEditor.qml">qml/popup/PopupInputChannelEditor.qml</file>
     <file alias="PopupInputNumber.qml">qml/popup/PopupInputNumber.qml</file>
+    <file alias="PopupMovingEditor.qml">qml/popup/PopupMovingEditor.qml</file>
 
     <!-- Fixtures and Functions -->
     <file alias="FixturesAndFunctions.qml">qml/fixturesfunctions/FixturesAndFunctions.qml</file>
@@ -138,6 +140,12 @@
     <file alias="EFXPreview.qml">qml/fixturesfunctions/EFXPreview.qml</file>
     <file alias="ScriptEditor.qml">qml/fixturesfunctions/ScriptEditor.qml</file>
     <file alias="PaletteManager.qml">qml/fixturesfunctions/PaletteManager.qml</file>
+
+    <!-- Effect Editor (Super Scenes / Super Chasers) -->
+    <file alias="EffectEditor.qml">qml/effecteditor/EffectEditor.qml</file>
+    <file alias="EffectGroupColumn.qml">qml/effecteditor/EffectGroupColumn.qml</file>
+    <file alias="EffectSceneCard.qml">qml/effecteditor/EffectSceneCard.qml</file>
+    <file alias="PopupSuperShowEditor.qml">qml/effecteditor/PopupSuperShowEditor.qml</file>
 
     <!-- 3D View -->
     <file alias="3DView.qml">qml/fixturesfunctions/3DView/3DView.qml</file>

@@ -1368,6 +1368,7 @@ void VirtualConsole::slotInputValueChanged(quint32 universe, quint32 channel, uc
         const quint32 sourceId = m_autoDetectionSource->id();
         const quint32 oldUniverse = m_autoDetectionSource->universe();
         const quint32 oldChannel = m_autoDetectionSource->channel();
+        VCWidget *detectedWidget = m_autoDetectionWidget; // disableAutoDetection() clears the member below
 
         for (VCPage *page : m_pages) // C++11
             page->unMapInputSource(sourceId, oldUniverse, oldChannel, m_autoDetectionWidget, true);
@@ -1379,6 +1380,8 @@ void VirtualConsole::slotInputValueChanged(quint32 universe, quint32 channel, uc
 
         /** At last, disable the autodetection process */
         disableAutoDetection();
+
+        emit inputSourceLearned(detectedWidget, sourceId, universe, channel);
     }
 }
 

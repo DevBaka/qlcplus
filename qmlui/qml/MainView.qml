@@ -50,6 +50,8 @@ Rectangle
             item = sdEntry
         else if (ctx === "SHOWMGR")
             item = smEntry
+        else if (ctx === "EFFECTEDITOR")
+            item = eeEntry
         else if (ctx === "IOMGR")
             item = ioEntry
 
@@ -61,6 +63,21 @@ Rectangle
             return true
         }
         return false
+    }
+
+    // Switch to the Fixtures & Functions context, then ask its RightPanel to
+    // open $funcID's editor once it exists - used by pages other than the
+    // function tree's own double-click flow (e.g. the Effect Editor's
+    // "Bearbeiten" button) to jump straight to editing a Chaser/Scene/etc.
+    // Deliberately a function on MainView itself (not on the caller): the
+    // caller is typically the very item mainViewLoader.source is about to
+    // replace/destroy, so a Qt.callLater() closure defined there would lose
+    // its context before firing - this one is defined here, on a component
+    // that outlives the switch.
+    function switchToFunctionEditor(funcID)
+    {
+        switchToContext("FIXANDFUNC", "qrc:/FixturesAndFunctions.qml")
+        Qt.callLater(function() { functionManager.setEditorFunction(funcID, true, false) })
     }
 
     function switchToContext(ctx, qmlRes)
@@ -252,6 +269,28 @@ Rectangle
                 {
                     smEntry.visible = false
                     contextManager.detachContext("SHOWMGR")
+                }
+            }
+            MenuBarEntry
+            {
+                id: eeEntry
+                Layout.alignment: Qt.AlignTop
+                property string ctxName: "EFFECTEDITOR"
+                property string ctxRes: "qrc:/EffectEditor.qml"
+
+                visible: qlcplus.accessMask & App.AC_FunctionEditing
+                faSource: FontAwesome.fa_wand_magic_sparkles
+                entryText: qsTr("Effekt Editor")
+                ButtonGroup.group: menuBarGroup
+                onCheckedChanged:
+                {
+                    if (checked === true)
+                        switchToContext(eeEntry.ctxName, eeEntry.ctxRes)
+                }
+                onRightClicked:
+                {
+                    eeEntry.visible = false
+                    contextManager.detachContext("EFFECTEDITOR")
                 }
             }
             MenuBarEntry

@@ -745,8 +745,26 @@ void Doc::slotFixtureChanged(quint32 id)
          * setting new universe and address calls this twice,
          * with an tmp wrong address after the first call (old address() + new universe()).
          * we only add if the channel is free, to prevent messing up things
+         *
+         * This used to be a Q_ASSERT here instead of an actual check - in a
+         * Release build (NDEBUG, i.e. every packaged build of this app)
+         * that compiles out completely, so a manual move/resize that made
+         * this fixture's new range overlap another fixture's still-claimed
+         * channels silently overwrote that other fixture's entry in
+         * m_addresses below, with no warning at all. Every subsequent
+         * fixtureForAddress() lookup on the shared channel(s) then
+         * resolved to the WRONG fixture (this one, not the one actually
+         * patched there) - e.g. Simple Desk sliders for the original
+         * fixture silently stopped reaching it. Keep the other fixture's
+         * claim intact instead of stealing it; the moved fixture simply
+         * doesn't get an entry for the channel(s) it now overlaps.
          */
-        Q_ASSERT(!m_addresses.contains(i));
+        if (m_addresses.contains(i))
+        {
+            qWarning() << Q_FUNC_INFO << "fixture" << id << "moved to an address range that overlaps fixture"
+                       << m_addresses.value(i) << "@ channel" << i << "- keeping the existing mapping";
+            continue;
+        }
         m_addresses[i] = id;
     }
 

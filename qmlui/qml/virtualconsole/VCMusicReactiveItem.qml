@@ -38,9 +38,90 @@ VCWidgetItem
     property var bandNames: [ qsTr("Master"), qsTr("Kick"), qsTr("Mids") ]
     property var bandColors: [ "#4488FF", "#FF4444", "#44DD88" ]
 
+    // Which control (see midiControlId in each row's modelData) is
+    // currently waiting for a MIDI/keyboard press to land, or -1 if
+    // none - set the instant a row is clicked in MIDI edit mode, cleared
+    // either by inputSourceLearned actually completing it (see the
+    // Connections block below) or by clicking that same row again to
+    // cancel (see cancelOrStartMidiLearn()). Purely local UI state, not
+    // persisted - virtualConsole itself only exposes a matching "is ANY
+    // detection running" flag as a private bool, not per-control and not
+    // to QML, so this is tracked here instead.
+    property int pendingLearnControlId: -1
+
+    // Shared by every row's MIDI-learn click handler (Profiles/Chasers/
+    // Idle all call this the same way) - starts learning $controlId,
+    // first cancelling whatever detection might already be pending
+    // (either this same control, acting as a toggle-to-cancel, or a
+    // different one the operator clicked into by mistake and now wants
+    // to abandon - virtualConsole.enableInputSourceAutoDetection()
+    // silently refuses a second detection while one's already running,
+    // so leaving the old one active would make the new click do nothing
+    // at all, with no feedback as to why).
+    function cancelOrStartMidiLearn(controlId)
+    {
+        var wasPending = pendingLearnControlId
+        if (wasPending >= 0)
+        {
+            virtualConsole.disableAutoDetection()
+            pendingLearnControlId = -1
+            if (wasPending === controlId)
+                return // clicking the row that was already waiting just cancels it
+        }
+        if (musicReactiveObj)
+        {
+            musicReactiveObj.learnMidiForControl(controlId)
+            pendingLearnControlId = controlId
+        }
+    }
+
     clip: true
 
     onMusicReactiveObjChanged: setCommonProperties(musicReactiveObj)
+
+    // Opened automatically the instant a MIDI/keyboard learn started
+    // from this widget's own MIDI edit mode (see learnMidiForControl()
+    // calls below) actually completes - see the Connections block below
+    // and virtualConsole's inputSourceLearned signal. Same dialog every
+    // other QLC+ widget's Properties panel "External controls" tab
+    // already uses to configure per-state (on/off) feedback colour and
+    // blink for controllers that support it (Akai APC Mini and
+    // similar) - reused as-is, nothing custom built for the dialog
+    // itself, only for popping it open right away here.
+    PopupCustomFeedback
+    {
+        id: feedbackPopup
+        // CustomPopupDialog.qml (which this is built on) parents/sizes
+        // itself off "mainView", an id that only resolves from QML
+        // instantiated directly within MainView.qml's own component
+        // scope (e.g. the Properties side panel, loaded as a genuine
+        // child of that tree) - a VC widget's own live item, created
+        // through a completely different runtime path, doesn't have
+        // that id in scope at all ("mainView is not defined", confirmed
+        // live). Overlay.overlay is the actual Qt Quick Controls
+        // mechanism for "the nearest usable full-window overlay" and
+        // doesn't depend on any app-specific id being in scope -
+        // overriding just these two properties is enough; everything
+        // else in the dialog (centering, etc.) already just works once
+        // parent is valid.
+        parent: Overlay.overlay
+        width: parent ? parent.width / 3 : 300
+    }
+
+    Connections
+    {
+        target: virtualConsole
+        function onInputSourceLearned(widget, controlId, uni, ch)
+        {
+            if (!musicReactiveObj || widget !== musicReactiveObj)
+                return
+            musicReactiveRoot.pendingLearnControlId = -1
+            feedbackPopup.widgetObjRef = musicReactiveObj
+            feedbackPopup.universe = uni
+            feedbackPopup.channel = ch
+            feedbackPopup.open()
+        }
+    }
 
     ColumnLayout
     {
@@ -67,6 +148,44 @@ VCWidgetItem
                 // "!checked" instead of relying on it).
                 onClicked: if (musicReactiveObj) musicReactiveObj.captureEnabled = !musicReactiveObj.captureEnabled
                 tooltip: qsTr("Enable audio capture")
+            }
+
+            // MIDI edit mode: while on, clicking a checkbox/row in the
+            // Profiles/Chasers/Idle panels below starts MIDI/keyboard
+            // learn for THAT item instead of toggling it - point at
+            // what you want, then hit the pad/key. Where the actual
+            // MIDI note ends up mapped, and configuring per-state
+            // feedback colour/blink for controllers that support it
+            // (Akai APC Mini and similar), is the same generic
+            // "External controls" tab every other QLC+ widget already
+            // has in its own Properties panel - this button is just a
+            // quicker way to reach it than hunting the right item in
+            // that flat list by name.
+            IconButton
+            {
+                width: UISettings.iconSizeDefault
+                height: UISettings.iconSizeDefault
+                faSource: FontAwesome.fa_plug
+                checkable: true
+                checked: musicReactiveObj ? musicReactiveObj.midiEditMode : false
+                onClicked:
+                {
+                    if (!musicReactiveObj)
+                        return
+                    // Leaving MIDI edit mode with a learn still pending
+                    // would otherwise leave that row's yellow "waiting"
+                    // highlight stuck on indefinitely (it isn't gated by
+                    // midiEditMode itself, unlike the plug icons) and the
+                    // detection itself dangling in virtualConsole with no
+                    // way back to it - cancel cleanly instead.
+                    if (musicReactiveObj.midiEditMode && musicReactiveRoot.pendingLearnControlId >= 0)
+                    {
+                        virtualConsole.disableAutoDetection()
+                        musicReactiveRoot.pendingLearnControlId = -1
+                    }
+                    musicReactiveObj.midiEditMode = !musicReactiveObj.midiEditMode
+                }
+                tooltip: qsTr("MIDI edit mode: click a checkbox below to learn a MIDI/keyboard control for it")
             }
 
             // Manual safety net for live use: with Auto off, the
@@ -318,8 +437,9 @@ VCWidgetItem
                                 height: UISettings.iconSizeDefault + 6
                                 radius: 3
                                 color: "transparent"
-                                border.width: 2
-                                border.color: modelData.active ?
+                                border.width: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId ? 3 : 2
+                                border.color: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId ? "#FFDD33" :
+                                                  modelData.active ?
                                                   (musicReactiveObj && musicReactiveObj.currentProfileIndex === index ? "#33CC55" : "#DD9922") :
                                                   UISettings.bgLight
 
@@ -339,6 +459,35 @@ VCWidgetItem
                                         Layout.fillWidth: true
                                         label: modelData.name
                                     }
+                                    IconButton
+                                    {
+                                        visible: musicReactiveObj && musicReactiveObj.midiEditMode && modelData.midiControlId >= 0
+                                        width: UISettings.iconSizeDefault * 0.7
+                                        height: width
+                                        faSource: FontAwesome.fa_plug
+                                        faColor: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId ? "#FFDD33" :
+                                                     (musicReactiveObj && musicReactiveObj.isControlLearned(modelData.midiControlId)) ? "limegreen" : UISettings.fgMedium
+                                        enabled: false
+                                        // Learned state, not just "a control slot exists for this" -
+                                        // every entry gets a control id the moment it's created,
+                                        // whether or not anything was ever actually assigned to it.
+                                        tooltip: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId
+                                                     ? qsTr("Waiting for a MIDI/keyboard press... click again to cancel")
+                                                     : (musicReactiveObj && musicReactiveObj.isControlLearned(modelData.midiControlId))
+                                                     ? qsTr("A MIDI/keyboard control is already learned for this - click to re-learn")
+                                                     : qsTr("No MIDI/keyboard control learned yet - click to learn one")
+                                    }
+                                }
+
+                                // On top of everything above, only while
+                                // midiEditMode is on - see the button
+                                // next to the mic icon at the top.
+                                MouseArea
+                                {
+                                    anchors.fill: parent
+                                    enabled: musicReactiveObj && musicReactiveObj.midiEditMode
+                                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                    onClicked: musicReactiveRoot.cancelOrStartMidiLearn(modelData.midiControlId)
                                 }
                             }
                     }
@@ -382,8 +531,9 @@ VCWidgetItem
                                 height: UISettings.iconSizeDefault + 6
                                 radius: 3
                                 color: "transparent"
-                                border.width: 2
-                                border.color: modelData.running ? "#33CC55" : (modelData.enabled ? "#DD9922" : UISettings.bgLight)
+                                border.width: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId ? 3 : 2
+                                border.color: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId ? "#FFDD33" :
+                                                  modelData.running ? "#33CC55" : (modelData.enabled ? "#DD9922" : UISettings.bgLight)
 
                                 RowLayout
                                 {
@@ -402,6 +552,126 @@ VCWidgetItem
                                         Layout.fillWidth: true
                                         label: modelData.name + " (" + modelData.profileName + ")"
                                     }
+                                    IconButton
+                                    {
+                                        visible: musicReactiveObj && musicReactiveObj.midiEditMode && modelData.midiControlId >= 0
+                                        width: UISettings.iconSizeDefault * 0.7
+                                        height: width
+                                        faSource: FontAwesome.fa_plug
+                                        faColor: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId ? "#FFDD33" :
+                                                     (musicReactiveObj && musicReactiveObj.isControlLearned(modelData.midiControlId)) ? "limegreen" : UISettings.fgMedium
+                                        enabled: false
+                                        // Learned state, not just "a control slot exists for this" -
+                                        // every entry gets a control id the moment it's created,
+                                        // whether or not anything was ever actually assigned to it.
+                                        tooltip: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId
+                                                     ? qsTr("Waiting for a MIDI/keyboard press... click again to cancel")
+                                                     : (musicReactiveObj && musicReactiveObj.isControlLearned(modelData.midiControlId))
+                                                     ? qsTr("A MIDI/keyboard control is already learned for this - click to re-learn")
+                                                     : qsTr("No MIDI/keyboard control learned yet - click to learn one")
+                                    }
+                                }
+
+                                MouseArea
+                                {
+                                    anchors.fill: parent
+                                    enabled: musicReactiveObj && musicReactiveObj.midiEditMode
+                                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                    onClicked: musicReactiveRoot.cancelOrStartMidiLearn(modelData.midiControlId)
+                                }
+                            }
+                    }
+                }
+            }
+
+            // Idle - every Scene/Chaser belonging to any ACTIVE Idle Set,
+            // flattened across Sets (same rotation idea as Profiles ->
+            // Chasers, but for the break/ambient state): tick individual
+            // ones on/off live regardless of which Set is currently in
+            // control - colored border shows what's actually running
+            // right now (only meaningful once a break is in progress).
+            // Which Sets exist, which Scenes/Chasers belong to one, and
+            // which Sets are active/participate in rotation are all
+            // built up in the widget's Properties panel, not here.
+            Rectangle
+            {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                color: UISettings.bgStrong
+                border.width: 1
+                border.color: UISettings.bgLight
+
+                ColumnLayout
+                {
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    spacing: 2
+
+                    RobotoText { label: qsTr("Idle"); fontBold: true }
+
+                    ListView
+                    {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        model: musicReactiveObj ? musicReactiveObj.visibleAmbientFunctions : null
+
+                        ScrollBar.vertical: CustomScrollBar { }
+
+                        delegate:
+                            Rectangle
+                            {
+                                width: ListView.view.width
+                                height: UISettings.iconSizeDefault + 6
+                                radius: 3
+                                color: "transparent"
+                                border.width: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId ? 3 : 2
+                                border.color: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId ? "#FFDD33" :
+                                                  modelData.running ? "#33CC55" : (modelData.enabled ? "#DD9922" : UISettings.bgLight)
+
+                                RowLayout
+                                {
+                                    anchors.fill: parent
+                                    anchors.margins: 3
+
+                                    CustomCheckBox
+                                    {
+                                        checked: modelData.enabled
+                                        onClicked: if (musicReactiveObj)
+                                                       musicReactiveObj.setFunctionEnabledInAmbientSet(modelData.setIndex, modelData.functionIndex, checked)
+                                        tooltip: qsTr("Enabled")
+                                    }
+                                    RobotoText
+                                    {
+                                        Layout.fillWidth: true
+                                        label: modelData.name + " (" + modelData.setName + ")"
+                                    }
+                                    IconButton
+                                    {
+                                        visible: musicReactiveObj && musicReactiveObj.midiEditMode && modelData.midiControlId >= 0
+                                        width: UISettings.iconSizeDefault * 0.7
+                                        height: width
+                                        faSource: FontAwesome.fa_plug
+                                        faColor: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId ? "#FFDD33" :
+                                                     (musicReactiveObj && musicReactiveObj.isControlLearned(modelData.midiControlId)) ? "limegreen" : UISettings.fgMedium
+                                        enabled: false
+                                        // Learned state, not just "a control slot exists for this" -
+                                        // every entry gets a control id the moment it's created,
+                                        // whether or not anything was ever actually assigned to it.
+                                        tooltip: modelData.midiControlId === musicReactiveRoot.pendingLearnControlId
+                                                     ? qsTr("Waiting for a MIDI/keyboard press... click again to cancel")
+                                                     : (musicReactiveObj && musicReactiveObj.isControlLearned(modelData.midiControlId))
+                                                     ? qsTr("A MIDI/keyboard control is already learned for this - click to re-learn")
+                                                     : qsTr("No MIDI/keyboard control learned yet - click to learn one")
+                                    }
+                                }
+
+                                MouseArea
+                                {
+                                    anchors.fill: parent
+                                    enabled: musicReactiveObj && musicReactiveObj.midiEditMode
+                                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                    onClicked: musicReactiveRoot.cancelOrStartMidiLearn(modelData.midiControlId)
                                 }
                             }
                     }

@@ -46,6 +46,7 @@
 #include "show.h"
 #include "efx.h"
 #include "app.h"
+#include "genericdmxsource.h"
 
 #include "tardis.h"
 #include "doc.h"
@@ -59,6 +60,11 @@ FunctionManager::FunctionManager(QQuickView *view, Doc *doc, QObject *parent)
     , m_scenePreviewEnabled(false)
     , m_filter(0)
     , m_searchFilter(QString())
+    , m_aiNetworkManager(nullptr)
+    , m_aiBusy(false)
+    , m_aiSelectedModel(QString())
+    , m_aiServerUrl(QStringLiteral("http://127.0.0.1:11434"))
+    , m_movingEditorSource(nullptr)
 {
     m_sceneCount = m_chaserCount = m_sequenceCount = m_efxCount = 0;
     m_collectionCount = m_rgbMatrixCount = m_scriptCount = 0;
@@ -66,6 +72,8 @@ FunctionManager::FunctionManager(QQuickView *view, Doc *doc, QObject *parent)
 
     m_currentEditor = nullptr;
     m_sceneEditor = nullptr;
+
+    m_aiStatus = tr("Bereit");
 
     m_view->rootContext()->setContextProperty("functionManager", this);
     qmlRegisterUncreatableType<Collection>("org.qlcplus.classes", 1, 0, "Collection", "Can't create a Collection");
@@ -90,6 +98,7 @@ FunctionManager::FunctionManager(QQuickView *view, Doc *doc, QObject *parent)
 
 FunctionManager::~FunctionManager()
 {
+    delete m_movingEditorSource;
     m_view->rootContext()->setContextProperty("functionManager", nullptr);
 }
 

@@ -298,6 +298,21 @@ public:
     Q_INVOKABLE QVariant inputChannelsModel();
     Q_INVOKABLE QVariantList universeListModel() const;
 
+signals:
+    /** Emitted right after an autodetection process started by
+     *  enableInputSourceAutoDetection()/createAndDetectInputSource()
+     *  actually completes - i.e. the moment $widget's control $id gets
+     *  bound to $universe/$channel. Existing callers of those two
+     *  methods don't need this (createAndDetectInputSource()'s own
+     *  ExternalControls.qml flow lets the user pick which control
+     *  afterwards, in their own time) - it exists for a caller that
+     *  already knows exactly which control it asked to learn and wants
+     *  to react immediately once that specific learn lands, e.g.
+     *  VCMusicReactiveItem.qml popping its feedback-colour dialog open
+     *  the instant a note is learned instead of making the user go dig
+     *  it out of the Properties panel afterwards. */
+    void inputSourceLearned(VCWidget *widget, quint32 id, quint32 universe, quint32 channel);
+
 protected slots:
     /**
      * Slot that receives external input data from the InputOutputMap class.

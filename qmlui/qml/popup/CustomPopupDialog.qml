@@ -34,7 +34,12 @@ Dialog
     closePolicy: Popup.CloseOnEscape
     title: ""
     standardButtons: Dialog.Ok | Dialog.Cancel
-    onVisibleChanged: mainView.setDimScreen(visible)
+    // guarded: 'mainView' is only in lexical scope when this dialog is instantiated
+    // from within MainView.qml's own component tree (e.g. the Properties side panel).
+    // When instantiated from elsewhere (e.g. a VC widget's live item, which overrides
+    // 'parent' to Overlay.overlay instead), 'mainView' is undefined and dimming is
+    // simply skipped rather than throwing a ReferenceError.
+    onVisibleChanged: if (typeof mainView !== "undefined") mainView.setDimScreen(visible)
 
     property string message: ""
 
